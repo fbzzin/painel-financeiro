@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Painel Administrativo</title>
+<style>
+body {
+  background: #0f172a; color: white;
+  font-family: Arial; padding: 20px;
+}
+.card {
+  background: #1e293b; padding: 16px;
+  margin-bottom: 12px; border-radius: 10px;
+}
+button {
+  padding: 6px 10px; border: none;
+  border-radius: 6px; cursor: pointer;
+  font-weight: bold;
+}
+.aprovar { background: #22c55e; }
+</style>
+</head>
+<body>
+
+<h1>Painel Administrativo</h1>
+<p>Usuários pendentes de aprovação:</p>
+<div id="lista"></div>
+
+<script>
+async function carregar() {
+  const resp = await fetch("/admin/users");
+  const users = await resp.json();
+
+  const div = document.getElementById("lista");
+  div.innerHTML = "";
+
+  if (!users.length) {
+    div.innerHTML = "<p>Nenhum usuário pendente.</p>";
+    return;
+  }
+
+  users.forEach(u => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <b>Nome:</b> ${u.name}<br>
+      <b>Email:</b> ${u.email}<br>
+      <b>Status:</b> ${u.status}<br><br>
+      <button class="aprovar" onclick="aprovar(${u.id})">Aprovar</button>
+    `;
+    div.appendChild(card);
+  });
+}
+
+async function aprovar(id) {
+  await fetch("/admin/approve/" + id, { method: "POST" });
+  alert("Usuário aprovado!");
+  carregar();
+}
+
+carregar();
+</script>
+
+</body>
+</html>

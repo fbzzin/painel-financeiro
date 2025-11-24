@@ -1,0 +1,1632 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Painel Financeiro – Fabiano</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Chart.js para gráficos -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      background: #020617;
+      color: #e5e7eb;
+      padding: 20px;
+    }
+
+    h1 { font-size: 24px; margin-bottom: 4px; }
+    h2 { font-size: 20px; margin: 20px 0 10px; }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* TOPO / MENU */
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      gap: 12px;
+    }
+
+    .topbar-right {
+      font-size: 12px;
+      color: #9ca3af;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .chip {
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #111827;
+      border: 1px solid #1f2937;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .menu-btn {
+      position: fixed;
+      left: 16px;
+      bottom: 18px;
+      cursor: pointer;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid #1f2937;
+      background: #111827;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+    }
+
+    .menu-line {
+      width: 16px;
+      height: 2px;
+      background: #e5e7eb;
+      border-radius: 999px;
+    }
+
+    /* MENU LATERAL */
+    #sidebar {
+      position: fixed;
+      top: 0;
+      left: -260px;
+      width: 260px;
+      height: 100vh;
+      background: #020617;
+      color: #e5e7eb;
+      transition: left 0.3s ease;
+      padding: 20px 18px;
+      border-right: 1px solid #1e293b;
+      z-index: 998;
+    }
+
+    #sidebar h2 {
+      margin: 0 0 16px 0;
+      font-size: 18px;
+    }
+
+    .menu-item {
+      padding: 10px 0;
+      cursor: pointer;
+      font-size: 14px;
+      border-bottom: 1px solid #111827;
+    }
+
+    .menu-item:last-child {
+      border-bottom: none;
+    }
+
+    .menu-item:hover {
+      color: #93c5fd;
+    }
+
+    /* LAYOUT */
+    .page { margin-top: 10px; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr);
+      gap: 20px;
+      align-items: flex-start;
+    }
+
+    @media (max-width: 900px) {
+      body { padding: 14px; }
+
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+
+    /* CARDS */
+    .card {
+      background: #020617;
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid #1f2937;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.45);
+    }
+
+    .card-header {
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .card-subtitle {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    /* TABELAS */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 12px;
+    }
+
+    th, td {
+      border: 1px solid #1f2937;
+      padding: 6px 8px;
+      text-align: center;
+    }
+
+    th {
+      background: #111827;
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    td { background: #020617; }
+    tr:nth-child(even) td { background: #020617; }
+    tr:hover td { background: #030712; }
+
+    /* INPUTS / BOTÕES */
+
+    input[type="number"],
+    input[type="text"],
+    input[type="date"],
+    select {
+      width: 100%;
+      padding: 4px 6px;
+      border-radius: 6px;
+      border: 1px solid #374151;
+      background: #020617;
+      color: #e5e7eb;
+      font-size: 12px;
+    }
+
+    select { cursor: pointer; }
+
+    input:focus, select:focus {
+      outline: 1px solid #3b82f6;
+      border-color: #3b82f6;
+    }
+
+    ::placeholder {
+      color: #6b7280;
+      font-size: 11px;
+    }
+
+    .btn {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      transition: background 0.15s ease, transform 0.05s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: #2563eb;
+      color: #e5e7eb;
+    }
+    .btn-primary:hover { background: #1d4ed8; }
+
+    .btn-secondary {
+      background: #111827;
+      color: #e5e7eb;
+      border: 1px solid #374151;
+    }
+    .btn-secondary:hover { background: #1f2937; }
+
+    .btn-sm { padding: 4px 8px; font-size: 11px; }
+    .btn + .btn { margin-left: 6px; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      border: 1px solid #374151;
+      background: #020617;
+      color: #9ca3af;
+    }
+
+    .badge.green {
+      border-color: #16a34a;
+      color: #bbf7d0;
+      background: rgba(22,163,74,0.15);
+    }
+
+    .badge.yellow {
+      border-color: #eab308;
+      color: #fef9c3;
+      background: rgba(234,179,8,0.12);
+    }
+
+    .badge.red {
+      border-color: #ef4444;
+      color: #fecaca;
+      background: rgba(239,68,68,0.12);
+    }
+
+    /* BARRAS DE PROGRESSO */
+    .progress-bar-wrap {
+      width: 100%;
+      background: #020617;
+      border-radius: 999px;
+      overflow: hidden;
+      height: 14px;
+      border: 1px solid #1f2937;
+      margin-top: 6px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: #22c55e;
+      width: 0%;
+      transition: width 0.3s ease, background 0.2s ease;
+    }
+
+    .progress-text {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-top: 2px;
+    }
+
+    /* MÊS / ANO */
+    .month-select-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 8px 0 4px;
+      font-size: 11px;
+      color: #9ca3af;
+      flex-wrap: wrap;
+    }
+
+    .month-select { max-width: 150px; }
+
+    /* OPERAÇÕES – ABAS */
+    .op-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .op-tabs {
+      display: inline-flex;
+      background: #020617;
+      border-radius: 999px;
+      padding: 3px;
+      border: 1px solid #1f2937;
+    }
+
+    .op-tab {
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 500;
+      color: #9ca3af;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .op-tab.active {
+      background: #111827;
+      color: #e5e7eb;
+      box-shadow: 0 0 0 1px #1d4ed8;
+    }
+
+    .op-section { margin-top: 6px; }
+    .hidden { display: none !important; }
+
+    /* VISÃO GERAL */
+    .overview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 14px;
+      margin-top: 10px;
+    }
+
+    .overview-card {
+      background: #020617;
+      border-radius: 12px;
+      border: 1px solid #1f2937;
+      padding: 12px 14px;
+    }
+
+    .overview-title {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .overview-value {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .highlight-green { color: #22c55e; }
+    .highlight-yellow { color: #facc15; }
+    .highlight-red { color: #ef4444; }
+
+    .chart-card {
+      background: #020617;
+      border-radius: 12px;
+      border: 1px solid #1f2937;
+      padding: 16px;
+      margin-top: 14px;
+    }
+
+    .chart-card canvas {
+      background: #020617;
+      border-radius: 8px;
+      padding: 4px;
+    }
+
+    .mt-8 { margin-top: 8px; }
+    .mt-10 { margin-top: 10px; }
+    .mt-16 { margin-top: 16px; }
+  </style>
+</head>
+
+<body>
+<!-- BOTÃO MENU -->
+<div id="menuBtn" class="menu-btn">
+  <div class="menu-line"></div>
+  <div class="menu-line"></div>
+  <div class="menu-line"></div>
+</div>
+
+<!-- MENU LATERAL -->
+<div id="sidebar">
+  <h2>Menu</h2>
+  <div class="menu-item" data-page="financeiro">📘 Plano Financeiro</div>
+  <div class="menu-item" data-page="pv">💸 Operação PV Money</div>
+  <div class="menu-item" data-page="esc">⚡ Escalador de Pix</div>
+  <div class="menu-item" data-page="visao">📊 Visão Geral</div>
+</div>
+
+<!-- CONTEÚDO -->
+<div id="content">
+  <div class="topbar">
+    <h1>Painel Financeiro – Fabiano</h1>
+    <div class="topbar-right">
+      <span class="chip">Painel Local • Dados no navegador</span>
+      <button id="btnLogout" class="btn btn-secondary btn-sm">Sair</button>
+    </div>
+  </div>
+
+  <!-- ======================= -->
+  <!-- 📘 PLANO FINANCEIRO     -->
+  <!-- ======================= -->
+  <div id="page-financeiro" class="page">
+
+    <h2>Plano Financeiro</h2>
+
+    <div class="month-select-wrapper">
+      <label>Mês:</label>
+      <select id="mesFinanceiro" class="month-select">
+        <option value="janeiro">Janeiro</option>
+        <option value="fevereiro">Fevereiro</option>
+        <option value="marco">Março</option>
+        <option value="abril">Abril</option>
+        <option value="maio">Maio</option>
+        <option value="junho">Junho</option>
+        <option value="julho">Julho</option>
+        <option value="agosto">Agosto</option>
+        <option value="setembro">Setembro</option>
+        <option value="outubro">Outubro</option>
+        <option value="novembro">Novembro</option>
+        <option value="dezembro">Dezembro</option>
+      </select>
+
+      <label>Ano:</label>
+      <select id="anoFinanceiro" class="month-select"></select>
+    </div>
+
+    <div class="layout">
+      <!-- Coluna esquerda -->
+      <div>
+
+        <div class="card">
+          <div class="card-header">Renda Mensal</div>
+          <input type="number" id="rendaMensal" placeholder="Ex: 5000" />
+        </div>
+
+        <!-- Card Renda x Gastos -->
+        <div class="card mt-10">
+          <div class="card-header">
+            Renda x Gastos
+            <span id="statusRenda" class="badge yellow">Analisando...</span>
+          </div>
+          <div class="card-subtitle" id="textoSugestao">
+            Informe renda e gastos para ver a análise.
+          </div>
+          <div class="progress-bar-wrap mt-8">
+            <div id="barraRenda" class="progress-bar-fill"></div>
+          </div>
+          <div class="progress-text" id="percentualRenda">0% da renda comprometida</div>
+        </div>
+
+        <!-- Gastos Essenciais -->
+        <div class="card mt-10">
+          <div class="card-header">
+            Gastos Essenciais
+            <button class="btn btn-secondary btn-sm" id="addEssencial">+ Item</button>
+          </div>
+          <table>
+            <thead>
+              <tr><th>Descrição</th><th>Valor (R$)</th></tr>
+            </thead>
+            <tbody id="essenciaisBody"></tbody>
+          </table>
+        </div>
+
+        <!-- Supérfluos -->
+        <div class="card mt-10">
+          <div class="card-header">
+            Gastos Supérfluos
+            <button class="btn btn-secondary btn-sm" id="addSup">+ Item</button>
+          </div>
+          <table>
+            <thead>
+              <tr><th>Descrição</th><th>Valor (R$)</th></tr>
+            </thead>
+            <tbody id="supBody"></tbody>
+          </table>
+        </div>
+
+        <!-- Dívidas Pagas no Mês -->
+        <div class="card mt-10">
+          <div class="card-header">
+            Dívidas Pagas no Mês
+            <button class="btn btn-secondary btn-sm" id="addDividaMes">+ Dívida</button>
+          </div>
+          <table>
+            <thead>
+              <tr><th>Descrição</th><th>Valor (R$)</th></tr>
+            </thead>
+            <tbody id="dividasMesBody"></tbody>
+          </table>
+        </div>
+
+      </div>
+
+      <!-- Coluna direita -->
+      <div>
+
+        <!-- Metas -->
+        <div class="card">
+          <div class="card-header">Metas Fixas</div>
+          <label class="mt-8">PC Gamer (meta R$)</label>
+          <input type="number" id="metaPC" placeholder="R$" />
+
+          <label class="mt-8">Civic G10 (meta R$)</label>
+          <input type="number" id="metaCivic" placeholder="R$" />
+
+          <label class="mt-8">Casa Alto Padrão (meta R$)</label>
+          <input type="number" id="metaCasa" placeholder="R$" />
+        </div>
+
+        <!-- Dívidas Totais -->
+        <div class="card mt-10">
+          <div class="card-header">
+            Dívidas Totais (snapshot)
+            <button class="btn btn-secondary btn-sm" id="addDividaTotal">+ Dívida</button>
+          </div>
+          <div class="card-subtitle">
+            Use para listar TODAS as dívidas que existem (independente de pagar nesse mês).
+          </div>
+          <table class="mt-8">
+            <thead>
+              <tr><th>Descrição</th><th>Valor (R$)</th></tr>
+            </thead>
+            <tbody id="dividasTotaisBody"></tbody>
+          </table>
+          <div class="mt-8 card-subtitle">
+            Total de dívidas: <span id="totalDividasLabel">R$ 0,00</span>
+          </div>
+        </div>
+
+        <!-- Gráfico -->
+        <div class="chart-card mt-10">
+          <canvas id="graficoFinanceiro"></canvas>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================= -->
+  <!-- 💸 PV MONEY             -->
+  <!-- ======================= -->
+  <div id="page-pv" class="page hidden">
+    <h2>Operação PV Money</h2>
+
+    <div class="op-header">
+      <div class="op-tabs">
+        <button class="op-tab active" data-op-tab="pv-lanc">🔵 Lançamentos</button>
+        <button class="op-tab" data-op-tab="pv-visao">🟣 Visão Geral</button>
+      </div>
+
+      <div class="month-select-wrapper">
+        <label>Mês:</label>
+        <select id="mesPV" class="month-select">
+          <option value="janeiro">Janeiro</option>
+          <option value="fevereiro">Fevereiro</option>
+          <option value="marco">Março</option>
+          <option value="abril">Abril</option>
+          <option value="maio">Maio</option>
+          <option value="junho">Junho</option>
+          <option value="julho">Julho</option>
+          <option value="agosto">Agosto</option>
+          <option value="setembro">Setembro</option>
+          <option value="outubro">Outubro</option>
+          <option value="novembro">Novembro</option>
+          <option value="dezembro">Dezembro</option>
+        </select>
+
+        <label>Ano:</label>
+        <select id="anoPV" class="month-select"></select>
+      </div>
+    </div>
+
+    <!-- Caixa Inicial PV -->
+    <div class="card mt-10">
+      <div class="card-header">
+        Caixa Inicial da Operação (PV)
+      </div>
+      <div class="card-subtitle">
+        Defina o caixa de partida desse mês. O campo "Caixa" da tabela será acumulado a partir desse valor + 30% dos retornos.
+      </div>
+      <input type="number" id="pvCaixaInicial" class="mt-8" placeholder="Ex: 5000" />
+    </div>
+
+    <!-- Lançamentos -->
+    <div id="pv-lanc" class="op-section">
+      <div class="card mt-10">
+        <div class="card-header">
+          Lançamentos de Ads
+          <button class="btn btn-secondary btn-sm" id="addPV">+ Linha</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Conta</th>
+              <th>Gasto (R$)</th>
+              <th>Retorno (R$)</th>
+              <th>ROI</th>
+              <th>Lucro</th>
+              <th>Caixa (acumulado)</th>
+            </tr>
+          </thead>
+          <tbody id="pvBody"></tbody>
+        </table>
+      </div>
+
+      <!-- Gastos adicionais -->
+      <div class="card mt-10">
+        <div class="card-header">
+          Gastos Adicionais (perfis, etc.)
+          <button class="btn btn-secondary btn-sm" id="addPVAdicional">+ Gasto</button>
+        </div>
+        <table>
+          <thead>
+            <tr><th>Descrição</th><th>Valor (R$)</th></tr>
+          </thead>
+          <tbody id="pvAdBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Visão geral PV -->
+    <div id="pv-visao" class="op-section hidden">
+      <div class="overview-grid">
+        <div class="overview-card">
+          <div class="overview-title">Gasto total (ano)</div>
+          <div class="overview-value" id="pvGastoAno">R$ 0,00</div>
+        </div>
+        <div class="overview-card">
+          <div class="overview-title">Gastos adicionais (ano)</div>
+          <div class="overview-value" id="pvAdAno">R$ 0,00</div>
+        </div>
+        <div class="overview-card">
+          <div class="overview-title">Retorno total (ano)</div>
+          <div class="overview-value" id="pvRetAno">R$ 0,00</div>
+        </div>
+        <div class="overview-card">
+          <div class="overview-title">Lucro real (ano)</div>
+          <div class="overview-value highlight-green" id="pvLucroAno">R$ 0,00</div>
+        </div>
+        <div class="overview-card">
+          <div class="overview-title">ROI real</div>
+          <div class="overview-value highlight-green" id="pvRoiRealAno">0.00</div>
+        </div>
+      </div>
+
+      <div class="chart-card mt-16">
+        <canvas id="pvGrafico"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================= -->
+  <!-- ⚡ ESCALADOR DE PIX     -->
+  <!-- ======================= -->
+  <div id="page-esc" class="page hidden">
+    <h2>Escalador de Pix Gerador</h2>
+
+    <div class="op-header">
+      <div class="op-tabs">
+        <button class="op-tab active" data-op-tab="esc-lanc">🔵 Lançamentos</button>
+        <button class="op-tab" data-op-tab="esc-visao">🟣 Visão Geral</button>
+      </div>
+
+      <div class="month-select-wrapper">
+        <label>Mês:</label>
+        <select id="mesEsc" class="month-select">
+          <option value="janeiro">Janeiro</option>
+          <option value="fevereiro">Fevereiro</option>
+          <option value="marco">Março</option>
+          <option value="abril">Abril</option>
+          <option value="maio">Maio</option>
+          <option value="junho">Junho</option>
+          <option value="julho">Julho</option>
+          <option value="agosto">Agosto</option>
+          <option value="setembro">Setembro</option>
+          <option value="outubro">Outubro</option>
+          <option value="novembro">Novembro</option>
+          <option value="dezembro">Dezembro</option>
+        </select>
+
+        <label>Ano:</label>
+        <select id="anoEsc" class="month-select"></select>
+      </div>
+    </div>
+
+    <!-- Caixa Inicial ESC -->
+    <div class="card mt-10">
+      <div class="card-header">
+        Caixa Inicial da Operação (Escalador)
+      </div>
+      <div class="card-subtitle">
+        Defina o caixa de partida desse mês. O campo "Caixa" da tabela será acumulado a partir desse valor + 30% dos retornos.
+      </div>
+      <input type="number" id="escCaixaInicial" class="mt-8" placeholder="Ex: 5000" />
+    </div>
+
+    <!-- Lançamentos ESC -->
+    <div id="esc-lanc" class="op-section">
+      <div class="card mt-10">
+        <div class="card-header">
+          Lançamentos de Ads
+          <button class="btn btn-secondary btn-sm" id="addEsc">+ Linha</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Conta</th>
+              <th>Gasto (R$)</th>
+              <th>Retorno (R$)</th>
+              <th>ROI</th>
+              <th>Lucro</th>
+              <th>Caixa (acumulado)</th>
+            </tr>
+          </thead>
+          <tbody id="escBody"></tbody>
+        </table>
+      </div>
+
+      <!-- Gastos adicionais ESC -->
+      <div class="card mt-10">
+        <div class="card-header">
+          Gastos Adicionais
+          <button class="btn btn-secondary btn-sm" id="addEscAdicional">+ Gasto</button>
+        </div>
+        <table>
+          <thead>
+            <tr><th>Descrição</th><th>Valor (R$)</th></tr>
+          </thead>
+          <tbody id="escAdBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Visão geral ESC -->
+    <div id="esc-visao" class="op-section hidden">
+      <div class="overview-grid">
+        <div class="overview-card">
+          <div class="overview-title">Gasto total (ano)</div>
+          <div class="overview-value" id="escGastoAno">R$ 0,00</div>
+        </div>
+        <div class="overview-card">
+          <div class="overview-title">Gastos adicionais (ano)</div>
+          <div class="overview-value" id="escAdAno">R$ 0,00</div>
+        </div>
+        <div class="overview-card">
+          <div class="overview-title">Retorno total (ano)</div>
+          <div class="overview-value" id="escRetAno">R$ 0,00</div>
+        </div>
+        <div class="overview-card">
+          <div class="overview-title">Lucro real (ano)</div>
+          <div class="overview-value highlight-green" id="escLucroAno">R$ 0,00</div>
+        </div>
+        <div class="overview-card">
+          <div class="overview-title">ROI real</div>
+          <div class="overview-value highlight-green" id="escRoiRealAno">0.00</div>
+        </div>
+      </div>
+
+      <div class="chart-card mt-16">
+        <canvas id="escGrafico"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================= -->
+  <!-- 📊 VISÃO GERAL ANUAL    -->
+  <!-- ======================= -->
+  <div id="page-visao" class="page hidden">
+    <h2>Visão Geral Financeira</h2>
+
+    <div class="month-select-wrapper">
+      <label>Ano:</label>
+      <select id="anoVisao" class="month-select"></select>
+    </div>
+
+    <div class="overview-grid mt-16">
+      <div class="overview-card">
+        <div class="overview-title">Faturamento anual</div>
+        <div class="overview-value" id="anoFaturamento">R$ 0,00</div>
+      </div>
+      <div class="overview-card">
+        <div class="overview-title">Gastos anuais</div>
+        <div class="overview-value highlight-red" id="anoGastos">R$ 0,00</div>
+      </div>
+      <div class="overview-card">
+        <div class="overview-title">Guardado no ano</div>
+        <div class="overview-value highlight-green" id="anoGuardado">R$ 0,00</div>
+      </div>
+      <div class="overview-card">
+        <div class="overview-title">ROI financeiro</div>
+        <div class="overview-value" id="anoRoi">0.00</div>
+      </div>
+      <div class="overview-card">
+        <div class="overview-title">Redução de dívidas (potencial)</div>
+        <div class="overview-value highlight-green" id="anoReducaoDividas">0%</div>
+      </div>
+    </div>
+
+    <div class="chart-card mt-16">
+      <canvas id="graficoAnual"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- =============== -->
+<!-- JS DO PAINEL    -->
+<!-- =============== -->
+<script>
+console.log("Painel carregado");
+
+/* UTILITÁRIOS */
+function formatBRL(v) {
+  if (!v || isNaN(v)) return "R$ 0,00";
+  return v.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    minimumFractionDigits: 2
+  });
+}
+
+function parseValor(v) {
+  if (v === null || v === undefined) return 0;
+  if (typeof v === "number") return v;
+  v = v.toString().replace("R$", "").replace(/\./g, "").replace(",", ".").trim();
+  const n = parseFloat(v);
+  return isNaN(n) ? 0 : n;
+}
+
+const meses = [
+  "janeiro","fevereiro","marco","abril","maio","junho",
+  "julho","agosto","setembro","outubro","novembro","dezembro"
+];
+
+function saveMonthData(key, data) {
+  localStorage.setItem(key, JSON.stringify(data));
+}
+function loadMonthData(key) {
+  const raw = localStorage.getItem(key);
+  if (!raw) return null;
+  try { return JSON.parse(raw); } catch (e) { return null; }
+}
+
+/* PREENCHER ANOS */
+function preencherAnosSelect(id) {
+  const sel = document.getElementById(id);
+  if (!sel) return;
+  const anoAtual = new Date().getFullYear();
+  const inicio = anoAtual - 3;
+  const fim = anoAtual + 5;
+  for (let ano = inicio; ano <= fim; ano++) {
+    const op = document.createElement("option");
+    op.value = String(ano);
+    op.textContent = String(ano);
+    if (ano === anoAtual) op.selected = true;
+    sel.appendChild(op);
+  }
+}
+
+/* MENU LATERAL */
+const sidebar = document.getElementById("sidebar");
+document.getElementById("menuBtn").onclick = () => {
+  sidebar.style.left = (sidebar.style.left === "0px") ? "-260px" : "0px";
+};
+
+const pages = {
+  financeiro: document.getElementById("page-financeiro"),
+  pv: document.getElementById("page-pv"),
+  esc: document.getElementById("page-esc"),
+  visao: document.getElementById("page-visao")
+};
+
+document.querySelectorAll(".menu-item").forEach(btn => {
+  const p = btn.dataset.page;
+  if (!p) return;
+  btn.addEventListener("click", () => {
+    Object.values(pages).forEach(pg => pg.classList.add("hidden"));
+    pages[p].classList.remove("hidden");
+    sidebar.style.left = "-260px";
+    if (p === "visao") atualizarVisaoGeral();
+  });
+});
+
+/* LOGOUT */
+const btnLogout = document.getElementById("btnLogout");
+if (btnLogout) {
+  btnLogout.addEventListener("click", () => {
+    localStorage.clear();
+    window.location.href = "/login.html"; // troque se o nome do seu login for outro
+  });
+}
+
+/* ABAS PV / ESC */
+function initOperationTabs(prefix) {
+  const tabs = document.querySelectorAll(`.op-tab[data-op-tab^="${prefix}"]`);
+  tabs.forEach(tab => {
+    tab.addEventListener("click", () => {
+      tabs.forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      const allSections = document.querySelectorAll(`[id^="${prefix}-"]`);
+      allSections.forEach(s => s.classList.add("hidden"));
+      const id = tab.dataset.opTab;
+      document.getElementById(id).classList.remove("hidden");
+    });
+  });
+}
+initOperationTabs("pv");
+initOperationTabs("esc");
+
+/* ================ */
+/* PLANO FINANCEIRO */
+/* ================ */
+const PF_PREFIX = "pf";
+const rendaInput = document.getElementById("rendaMensal");
+const essenciaisBody = document.getElementById("essenciaisBody");
+const supBody = document.getElementById("supBody");
+const dividasMesBody = document.getElementById("dividasMesBody");
+const dividasTotaisBody = document.getElementById("dividasTotaisBody");
+const metaPC = document.getElementById("metaPC");
+const metaCivic = document.getElementById("metaCivic");
+const metaCasa = document.getElementById("metaCasa");
+let graficoFinanceiro = null;
+
+function getAnoFinanceiro() {
+  const sel = document.getElementById("anoFinanceiro");
+  return sel ? sel.value : String(new Date().getFullYear());
+}
+
+function criarLinhaTabelaPF(tipo, item = {desc:"",val:0}) {
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td><input type="text" class="pf-desc" value="${item.desc || ""}" placeholder="Descrição"></td>
+    <td><input type="number" class="pf-val" value="${item.val || ""}" placeholder="0,00"></td>
+  `;
+  tr.querySelectorAll("input").forEach(inp => {
+    inp.addEventListener("input", savePlanoFinanceiro);
+  });
+
+  if (tipo === "essencial") essenciaisBody.appendChild(tr);
+  if (tipo === "sup") supBody.appendChild(tr);
+  if (tipo === "dividaMes") dividasMesBody.appendChild(tr);
+  if (tipo === "dividaTotal") dividasTotaisBody.appendChild(tr);
+}
+
+document.getElementById("addEssencial").onclick = () => criarLinhaTabelaPF("essencial");
+document.getElementById("addSup").onclick = () => criarLinhaTabelaPF("sup");
+document.getElementById("addDividaMes").onclick = () => criarLinhaTabelaPF("dividaMes");
+document.getElementById("addDividaTotal").onclick = () => criarLinhaTabelaPF("dividaTotal");
+
+function coletarTabelaPF(tbody) {
+  const arr = [];
+  tbody.querySelectorAll("tr").forEach(tr => {
+    const desc = tr.querySelector(".pf-desc")?.value || "";
+    const val = parseValor(tr.querySelector(".pf-val")?.value || 0);
+    if (desc.trim() !== "" || val > 0) arr.push({desc, val});
+  });
+  return arr;
+}
+
+function savePlanoFinanceiro() {
+  const mes = document.getElementById("mesFinanceiro").value;
+  const ano = getAnoFinanceiro();
+  const key = `${PF_PREFIX}_${ano}_${mes}`;
+
+  const data = {
+    renda: parseValor(rendaInput.value),
+    essenciais: coletarTabelaPF(essenciaisBody),
+    sup: coletarTabelaPF(supBody),
+    dividasMes: coletarTabelaPF(dividasMesBody),
+    dividasTotais: coletarTabelaPF(dividasTotaisBody),
+    metas: {
+      pc: parseValor(metaPC.value),
+      civic: parseValor(metaCivic.value),
+      casa: parseValor(metaCasa.value)
+    }
+  };
+
+  saveMonthData(key, data);
+  atualizarResumoFinanceiro();
+}
+
+[rendaInput, metaPC, metaCivic, metaCasa].forEach(el => {
+  el.addEventListener("input", savePlanoFinanceiro);
+});
+
+function preencherTabelaPF(tbody, arr, tipo) {
+  tbody.innerHTML = "";
+  if (!arr || arr.length === 0) return;
+  arr.forEach(item => criarLinhaTabelaPF(tipo, item));
+}
+
+function loadPlanoFinanceiro() {
+  const mes = document.getElementById("mesFinanceiro").value;
+  const ano = getAnoFinanceiro();
+  const key = `${PF_PREFIX}_${ano}_${mes}`;
+  const data = loadMonthData(key) || {};
+
+  essenciaisBody.innerHTML = "";
+  supBody.innerHTML = "";
+  dividasMesBody.innerHTML = "";
+  dividasTotaisBody.innerHTML = "";
+
+  rendaInput.value = data.renda ?? "";
+  metaPC.value = data.metas?.pc ?? "";
+  metaCivic.value = data.metas?.civic ?? "";
+  metaCasa.value = data.metas?.casa ?? "";
+
+  preencherTabelaPF(essenciaisBody, data.essenciais, "essencial");
+  preencherTabelaPF(supBody, data.sup, "sup");
+  preencherTabelaPF(dividasMesBody, data.dividasMes, "dividaMes");
+  preencherTabelaPF(dividasTotaisBody, data.dividasTotais, "dividaTotal");
+
+  atualizarResumoFinanceiro();
+}
+
+document.getElementById("mesFinanceiro").addEventListener("change", loadPlanoFinanceiro);
+document.getElementById("anoFinanceiro").addEventListener("change", loadPlanoFinanceiro);
+
+function atualizarResumoFinanceiro() {
+  const mes = document.getElementById("mesFinanceiro").value;
+  const ano = getAnoFinanceiro();
+  const key = `${PF_PREFIX}_${ano}_${mes}`;
+  const data = loadMonthData(key) || {};
+
+  const renda = data.renda || 0;
+
+  const totalEssenciais = (data.essenciais || []).reduce((a,x)=>a+parseValor(x.val),0);
+  const totalSup = (data.sup || []).reduce((a,x)=>a+parseValor(x.val),0);
+  const totalDividasMes = (data.dividasMes || []).reduce((a,x)=>a+parseValor(x.val),0);
+  const totalDividasTotais = (data.dividasTotais || []).reduce((a,x)=>a+parseValor(x.val),0);
+
+  const totalGastosMes = totalEssenciais + totalSup + totalDividasMes;
+  const sobra = renda - totalGastosMes;
+
+  document.getElementById("totalDividasLabel").textContent = formatBRL(totalDividasTotais);
+
+  const barra = document.getElementById("barraRenda");
+  const textoPerc = document.getElementById("percentualRenda");
+  const status = document.getElementById("statusRenda");
+  const textoSug = document.getElementById("textoSugestao");
+
+  let perc = 0;
+  if (renda > 0) perc = Math.min(100, (totalGastosMes / renda) * 100);
+
+  barra.style.width = perc + "%";
+
+  if (perc <= 60) {
+    barra.style.background = "#22c55e";
+    status.className = "badge green";
+    status.textContent = "Saudável";
+    textoSug.textContent = "Boa. Dá para guardar agressivo e acelerar metas.";
+  } else if (perc <= 85) {
+    barra.style.background = "#eab308";
+    status.className = "badge yellow";
+    status.textContent = "Atenção";
+    textoSug.textContent = "Corta supérfluo e segura mais caixa.";
+  } else {
+    barra.style.background = "#ef4444";
+    status.className = "badge red";
+    status.textContent = "Crítico";
+    textoSug.textContent = "Você está torrando demais. Reduz gasto ou aumenta renda.";
+  }
+
+  textoPerc.textContent = `${perc.toFixed(1)}% da renda comprometida. Sobra: ${formatBRL(sobra)}`;
+
+  gerarGraficoPlanoFinanceiro(renda, totalGastosMes);
+}
+
+function gerarGraficoPlanoFinanceiro(renda, gastos) {
+  const ctx = document.getElementById("graficoFinanceiro");
+  if (!ctx) return;
+
+  if (graficoFinanceiro) graficoFinanceiro.destroy();
+
+  graficoFinanceiro = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: ["Renda", "Gastos"],
+      datasets: [{
+        label: "Mês",
+        data: [renda, gastos],
+        backgroundColor: [
+          "rgba(37,99,235,0.6)",
+          "rgba(239,68,68,0.6)"
+        ]
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+}
+
+/* ============ */
+/* PV MONEY     */
+/* ============ */
+const PV_PREFIX = "pv";
+const pvBody = document.getElementById("pvBody");
+const pvAdBody = document.getElementById("pvAdBody");
+const pvCaixaInicialInput = document.getElementById("pvCaixaInicial");
+let pvGrafico = null;
+
+function getAnoPV() {
+  const sel = document.getElementById("anoPV");
+  return sel ? sel.value : String(new Date().getFullYear());
+}
+
+function criarLinhaPV(item = {data:"",conta:"",gasto:"",ret:""}) {
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td><input type="date" class="pv-data" value="${item.data || ""}"></td>
+    <td><input type="text" class="pv-conta" value="${item.conta || ""}" placeholder="Conta"></td>
+    <td><input type="number" class="pv-gasto" value="${item.gasto || ""}" placeholder="0,00"></td>
+    <td><input type="number" class="pv-ret" value="${item.ret || ""}" placeholder="0,00"></td>
+    <td class="pv-roi">0.00</td>
+    <td class="pv-lucro">R$ 0,00</td>
+    <td class="pv-caixa">R$ 0,00</td>
+  `;
+  tr.querySelectorAll("input").forEach(inp => {
+    inp.addEventListener("input", () => {
+      atualizarLinhaPV(tr);
+      recalcCaixaPV();
+    });
+  });
+  pvBody.appendChild(tr);
+  atualizarLinhaPV(tr);
+  recalcCaixaPV();
+}
+
+function atualizarLinhaPV(tr) {
+  const gasto = parseValor(tr.querySelector(".pv-gasto").value);
+  const ret = parseValor(tr.querySelector(".pv-ret").value);
+  const roi = gasto > 0 ? (ret / gasto).toFixed(2) : "0.00";
+  const lucro = ret - gasto;
+
+  tr.querySelector(".pv-roi").textContent = roi;
+  tr.querySelector(".pv-lucro").textContent = formatBRL(lucro);
+
+  savePV(false); // salva sem recalc (vamos recalc separado)
+}
+
+function recalcCaixaPV() {
+  let caixa = parseValor(pvCaixaInicialInput.value);
+  pvBody.querySelectorAll("tr").forEach(tr => {
+    const ret = parseValor(tr.querySelector(".pv-ret").value);
+    const addCaixa = ret * 0.30; // 30% do retorno entra no caixa
+    caixa += addCaixa;
+    tr.querySelector(".pv-caixa").textContent = formatBRL(caixa);
+  });
+}
+
+function criarLinhaPVAdicional(item = {desc:"",val:""}) {
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td><input type="text" class="pv-ad-desc" value="${item.desc || ""}" placeholder="Descrição"></td>
+    <td><input type="number" class="pv-ad-val" value="${item.val || ""}" placeholder="0,00"></td>
+  `;
+  tr.querySelectorAll("input").forEach(inp => inp.addEventListener("input", () => savePV()));
+  pvAdBody.appendChild(tr);
+}
+
+document.getElementById("addPV").onclick = () => criarLinhaPV();
+document.getElementById("addPVAdicional").onclick = () => criarLinhaPVAdicional();
+pvCaixaInicialInput.addEventListener("input", () => { recalcCaixaPV(); savePV(); });
+
+function savePV(recalc = true) {
+  const mes = document.getElementById("mesPV").value;
+  const ano = getAnoPV();
+  const key = `${PV_PREFIX}_${ano}_${mes}`;
+
+  const lanc = [];
+  pvBody.querySelectorAll("tr").forEach(tr => {
+    const data = tr.querySelector(".pv-data").value;
+    const conta = tr.querySelector(".pv-conta").value;
+    const gasto = parseValor(tr.querySelector(".pv-gasto").value);
+    const ret = parseValor(tr.querySelector(".pv-ret").value);
+    if (!data && !conta && !gasto && !ret) return;
+    lanc.push({data,conta,gasto,ret});
+  });
+
+  const adicionais = [];
+  pvAdBody.querySelectorAll("tr").forEach(tr => {
+    const desc = tr.querySelector(".pv-ad-desc").value;
+    const val = parseValor(tr.querySelector(".pv-ad-val").value);
+    if (!desc && !val) return;
+    adicionais.push({desc,val});
+  });
+
+  const caixaInicial = parseValor(pvCaixaInicialInput.value);
+
+  saveMonthData(key,{lanc,adicionais,caixaInicial});
+
+  if (recalc) recalcCaixaPV();
+  atualizarPVVisaoGeral();
+}
+
+function loadPV() {
+  const mes = document.getElementById("mesPV").value;
+  const ano = getAnoPV();
+  const key = `${PV_PREFIX}_${ano}_${mes}`;
+  const data = loadMonthData(key) || {};
+
+  pvBody.innerHTML = "";
+  pvAdBody.innerHTML = "";
+
+  pvCaixaInicialInput.value = data.caixaInicial ?? "";
+
+  (data.lanc || []).forEach(item => criarLinhaPV(item));
+  (data.adicionais || []).forEach(item => criarLinhaPVAdicional(item));
+
+  recalcCaixaPV();
+  atualizarPVVisaoGeral();
+}
+
+document.getElementById("mesPV").addEventListener("change", loadPV);
+document.getElementById("anoPV").addEventListener("change", loadPV);
+
+function atualizarPVVisaoGeral() {
+  const ano = getAnoPV();
+  let gastoAno = 0, adicionalAno = 0, retAno = 0;
+
+  meses.forEach(m => {
+    const key = `${PV_PREFIX}_${ano}_${m}`;
+    const data = loadMonthData(key);
+    if (!data) return;
+    (data.lanc || []).forEach(l => {
+      gastoAno += parseValor(l.gasto);
+      retAno += parseValor(l.ret);
+    });
+    (data.adicionais || []).forEach(a => {
+      adicionalAno += parseValor(a.val);
+    });
+  });
+
+  const lucroReal = retAno - gastoAno - adicionalAno;
+  const roi = gastoAno > 0 ? (retAno / gastoAno).toFixed(2) : "0.00";
+
+  document.getElementById("pvGastoAno").textContent = formatBRL(gastoAno);
+  document.getElementById("pvAdAno").textContent = formatBRL(adicionalAno);
+  document.getElementById("pvRetAno").textContent = formatBRL(retAno);
+  document.getElementById("pvLucroAno").textContent = formatBRL(lucroReal);
+  document.getElementById("pvRoiRealAno").textContent = roi;
+
+  gerarGraficoPV(gastoAno, retAno);
+}
+
+function gerarGraficoPV(gastoAno, retAno) {
+  const ctx = document.getElementById("pvGrafico");
+  if (!ctx) return;
+  if (pvGrafico) pvGrafico.destroy();
+
+  pvGrafico = new Chart(ctx,{
+    type:"bar",
+    data:{
+      labels:["Gasto Total","Retorno Total"],
+      datasets:[{
+        label:"PV Money",
+        data:[gastoAno,retAno],
+        backgroundColor:[
+          "rgba(239,68,68,0.6)",
+          "rgba(34,197,94,0.6)"
+        ]
+      }]
+    },
+    options:{ scales:{y:{beginAtZero:true}} }
+  });
+}
+
+/* ============ */
+/* ESCALADOR    */
+/* ============ */
+const ESC_PREFIX = "esc";
+const escBody = document.getElementById("escBody");
+const escAdBody = document.getElementById("escAdBody");
+const escCaixaInicialInput = document.getElementById("escCaixaInicial");
+let escGrafico = null;
+
+function getAnoEsc() {
+  const sel = document.getElementById("anoEsc");
+  return sel ? sel.value : String(new Date().getFullYear());
+}
+
+function criarLinhaEsc(item = {data:"",conta:"",gasto:"",ret:""}) {
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td><input type="date" class="esc-data" value="${item.data || ""}"></td>
+    <td><input type="text" class="esc-conta" value="${item.conta || ""}" placeholder="Conta"></td>
+    <td><input type="number" class="esc-gasto" value="${item.gasto || ""}" placeholder="0,00"></td>
+    <td><input type="number" class="esc-ret" value="${item.ret || ""}" placeholder="0,00"></td>
+    <td class="esc-roi">0.00</td>
+    <td class="esc-lucro">R$ 0,00</td>
+    <td class="esc-caixa">R$ 0,00</td>
+  `;
+  tr.querySelectorAll("input").forEach(inp => {
+    inp.addEventListener("input", () => {
+      atualizarLinhaEsc(tr);
+      recalcCaixaEsc();
+    });
+  });
+  escBody.appendChild(tr);
+  atualizarLinhaEsc(tr);
+  recalcCaixaEsc();
+}
+
+function atualizarLinhaEsc(tr) {
+  const gasto = parseValor(tr.querySelector(".esc-gasto").value);
+  const ret = parseValor(tr.querySelector(".esc-ret").value);
+  const roi = gasto > 0 ? (ret / gasto).toFixed(2) : "0.00";
+  const lucro = ret - gasto;
+
+  tr.querySelector(".esc-roi").textContent = roi;
+  tr.querySelector(".esc-lucro").textContent = formatBRL(lucro);
+
+  saveEsc(false); // salva sem recalc (recalc separado)
+}
+
+function recalcCaixaEsc() {
+  let caixa = parseValor(escCaixaInicialInput.value);
+  escBody.querySelectorAll("tr").forEach(tr => {
+    const ret = parseValor(tr.querySelector(".esc-ret").value);
+    const addCaixa = ret * 0.30;
+    caixa += addCaixa;
+    tr.querySelector(".esc-caixa").textContent = formatBRL(caixa);
+  });
+}
+
+function criarLinhaEscAdicional(item = {desc:"",val:""}) {
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td><input type="text" class="esc-ad-desc" value="${item.desc || ""}" placeholder="Descrição"></td>
+    <td><input type="number" class="esc-ad-val" value="${item.val || ""}" placeholder="0,00"></td>
+  `;
+  tr.querySelectorAll("input").forEach(inp => inp.addEventListener("input", () => saveEsc()));
+  escAdBody.appendChild(tr);
+}
+
+document.getElementById("addEsc").onclick = () => criarLinhaEsc();
+document.getElementById("addEscAdicional").onclick = () => criarLinhaEscAdicional();
+escCaixaInicialInput.addEventListener("input", () => { recalcCaixaEsc(); saveEsc(); });
+
+function saveEsc(recalc = true) {
+  const mes = document.getElementById("mesEsc").value;
+  const ano = getAnoEsc();
+  const key = `${ESC_PREFIX}_${ano}_${mes}`;
+
+  const lanc = [];
+  escBody.querySelectorAll("tr").forEach(tr => {
+    const data = tr.querySelector(".esc-data").value;
+    const conta = tr.querySelector(".esc-conta").value;
+    const gasto = parseValor(tr.querySelector(".esc-gasto").value);
+    const ret = parseValor(tr.querySelector(".esc-ret").value);
+    if (!data && !conta && !gasto && !ret) return;
+    lanc.push({data,conta,gasto,ret});
+  });
+
+  const adicionais = [];
+  escAdBody.querySelectorAll("tr").forEach(tr => {
+    const desc = tr.querySelector(".esc-ad-desc").value;
+    const val = parseValor(tr.querySelector(".esc-ad-val").value);
+    if (!desc && !val) return;
+    adicionais.push({desc,val});
+  });
+
+  const caixaInicial = parseValor(escCaixaInicialInput.value);
+
+  saveMonthData(key,{lanc,adicionais,caixaInicial});
+
+  if (recalc) recalcCaixaEsc();
+  atualizarEscVisaoGeral();
+}
+
+function loadEsc() {
+  const mes = document.getElementById("mesEsc").value;
+  const ano = getAnoEsc();
+  const key = `${ESC_PREFIX}_${ano}_${mes}`;
+  const data = loadMonthData(key) || {};
+
+  escBody.innerHTML = "";
+  escAdBody.innerHTML = "";
+
+  escCaixaInicialInput.value = data.caixaInicial ?? "";
+
+  (data.lanc || []).forEach(item => criarLinhaEsc(item));
+  (data.adicionais || []).forEach(item => criarLinhaEscAdicional(item));
+
+  recalcCaixaEsc();
+  atualizarEscVisaoGeral();
+}
+
+document.getElementById("mesEsc").addEventListener("change", loadEsc);
+document.getElementById("anoEsc").addEventListener("change", loadEsc);
+
+function atualizarEscVisaoGeral() {
+  const ano = getAnoEsc();
+  let gastoAno = 0, adicionalAno = 0, retAno = 0;
+
+  meses.forEach(m => {
+    const key = `${ESC_PREFIX}_${ano}_${m}`;
+    const data = loadMonthData(key);
+    if (!data) return;
+    (data.lanc || []).forEach(l => {
+      gastoAno += parseValor(l.gasto);
+      retAno += parseValor(l.ret);
+    });
+    (data.adicionais || []).forEach(a => {
+      adicionalAno += parseValor(a.val);
+    });
+  });
+
+  const lucroReal = retAno - gastoAno - adicionalAno;
+  const roi = gastoAno > 0 ? (retAno / gastoAno).toFixed(2) : "0.00";
+
+  document.getElementById("escGastoAno").textContent = formatBRL(gastoAno);
+  document.getElementById("escAdAno").textContent = formatBRL(adicionalAno);
+  document.getElementById("escRetAno").textContent = formatBRL(retAno);
+  document.getElementById("escLucroAno").textContent = formatBRL(lucroReal);
+  document.getElementById("escRoiRealAno").textContent = roi;
+
+  gerarGraficoEsc(gastoAno, retAno);
+}
+
+function gerarGraficoEsc(gastoAno, retAno) {
+  const ctx = document.getElementById("escGrafico");
+  if (!ctx) return;
+  if (escGrafico) escGrafico.destroy();
+
+  escGrafico = new Chart(ctx,{
+    type:"bar",
+    data:{
+      labels:["Gasto Total","Retorno Total"],
+      datasets:[{
+        label:"Escalador de Pix",
+        data:[gastoAno,retAno],
+        backgroundColor:[
+          "rgba(239,68,68,0.6)",
+          "rgba(34,197,94,0.6)"
+        ]
+      }]
+    },
+    options:{ scales:{y:{beginAtZero:true}} }
+  });
+}
+
+/* ====================== */
+/* VISÃO GERAL FINANCEIRA */
+/* ====================== */
+let graficoAnual = null;
+
+function getAnoVisao() {
+  const sel = document.getElementById("anoVisao");
+  return sel ? sel.value : String(new Date().getFullYear());
+}
+
+function calcularFinanceiroAnual() {
+  const ano = getAnoVisao();
+  let faturamento = 0;
+  let gastos = 0;
+  let guardado = 0;
+  let totalDividas = 0;
+
+  meses.forEach(m => {
+    const data = loadMonthData(`${PF_PREFIX}_${ano}_${m}`);
+    if (!data) return;
+
+    const renda = parseValor(data.renda || 0);
+    const gEss = (data.essenciais || []).reduce((a,x)=>a+parseValor(x.val),0);
+    const gSup = (data.sup || []).reduce((a,x)=>a+parseValor(x.val),0);
+    const gDivMes = (data.dividasMes || []).reduce((a,x)=>a+parseValor(x.val),0);
+    const gMes = gEss + gSup + gDivMes;
+
+    faturamento += renda;
+    gastos += gMes;
+
+    const sobraMes = renda - gMes;
+    if (sobraMes > 0) guardado += sobraMes;
+
+    totalDividas += (data.dividasTotais || []).reduce((a,x)=>a+parseValor(x.val),0);
+  });
+
+  return {faturamento,gastos,guardado,totalDividas};
+}
+
+function calcularOperacoesAnual() {
+  const ano = getAnoVisao();
+  let pvGasto=0,pvRet=0,pvAd=0;
+  let escGasto=0,escRet=0,escAd=0;
+
+  meses.forEach(m => {
+    const pv = loadMonthData(`${PV_PREFIX}_${ano}_${m}`);
+    if (pv) {
+      (pv.lanc || []).forEach(l=>{
+        pvGasto += parseValor(l.gasto);
+        pvRet += parseValor(l.ret);
+      });
+      (pv.adicionais || []).forEach(a=>{
+        pvAd += parseValor(a.val);
+      });
+    }
+
+    const esc = loadMonthData(`${ESC_PREFIX}_${ano}_${m}`);
+    if (esc) {
+      (esc.lanc || []).forEach(l=>{
+        escGasto += parseValor(l.gasto);
+        escRet += parseValor(l.ret);
+      });
+      (esc.adicionais || []).forEach(a=>{
+        escAd += parseValor(a.val);
+      });
+    }
+  });
+
+  return {pvGasto,pvRet,pvAd,escGasto,escRet,escAd};
+}
+
+function atualizarVisaoGeral() {
+  const fin = calcularFinanceiroAnual();
+  const op = calcularOperacoesAnual();
+
+  const faturamentoTotal = fin.faturamento + op.pvRet + op.escRet;
+  const gastosTotal = fin.gastos + op.pvGasto + op.pvAd + op.escGasto + op.escAd;
+  const guardadoTotal = fin.guardado;
+  const dividasTotais = fin.totalDividas;
+
+  const roiFinanceiro = gastosTotal > 0 ? (faturamentoTotal / gastosTotal).toFixed(2) : "0.00";
+  const reducaoDividas = dividasTotais > 0
+    ? Math.min(100, (guardadoTotal / dividasTotais) * 100).toFixed(1)
+    : 0;
+
+  document.getElementById("anoFaturamento").textContent = formatBRL(faturamentoTotal);
+  document.getElementById("anoGastos").textContent = formatBRL(gastosTotal);
+  document.getElementById("anoGuardado").textContent = formatBRL(guardadoTotal);
+  document.getElementById("anoRoi").textContent = roiFinanceiro;
+  document.getElementById("anoReducaoDividas").textContent = reducaoDividas + "%";
+
+  gerarGraficoFinanceiroAnual(
+    fin.faturamento,
+    op.pvRet + op.escRet,
+    fin.gastos,
+    op.pvGasto + op.pvAd + op.escGasto + op.escAd,
+    guardadoTotal
+  );
+}
+
+function gerarGraficoFinanceiroAnual(renda, retornoOperacoes, gastos, gastosOperacoes, guardado) {
+  const ctx = document.getElementById("graficoAnual");
+  if (!ctx) return;
+
+  if (graficoAnual) graficoAnual.destroy();
+
+  graficoAnual = new Chart(ctx,{
+    type:"bar",
+    data:{
+      labels:["Renda CLT/Financeiro","Retorno Operações","Gastos Fixos","Gastos Operacionais","Guardado"],
+      datasets:[{
+        label:"Ano",
+        data:[renda,retornoOperacoes,gastos,gastosOperacoes,guardado],
+        backgroundColor:[
+          "rgba(37,99,235,0.6)",
+          "rgba(34,197,94,0.6)",
+          "rgba(239,68,68,0.6)",
+          "rgba(250,204,21,0.6)",
+          "rgba(16,185,129,0.6)"
+        ]
+      }]
+    },
+    options:{
+      responsive:true,
+      scales:{
+        x:{ticks:{color:"#9ca3af"}},
+        y:{ticks:{color:"#9ca3af"}}
+      }
+    }
+  });
+}
+
+/* INICIALIZAÇÃO */
+window.addEventListener("load", () => {
+  preencherAnosSelect("anoFinanceiro");
+  preencherAnosSelect("anoPV");
+  preencherAnosSelect("anoEsc");
+  preencherAnosSelect("anoVisao");
+
+  loadPlanoFinanceiro();
+  loadPV();
+  loadEsc();
+  atualizarVisaoGeral();
+});
+
+document.getElementById("anoVisao").addEventListener("change", atualizarVisaoGeral);
+</script>
+
+</body>
+</html>
